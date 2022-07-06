@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/chzyer/readline"
@@ -12,7 +13,7 @@ import (
 func main() {
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:            "\033[31m»\033[0m ",
-		HistoryFile:       "readline.tmp",
+		HistoryFile:       ".history",
 		InterruptPrompt:   "^C",
 		EOFPrompt:         "exit",
 		HistorySearchFold: true,
@@ -39,9 +40,21 @@ func main() {
 		p := strings.Split(os.Getenv("PATH"), ":")
 		exist := false
 		for _, v := range p {
+			cmdArgs := strings.Split(cmd, " ")[1:]
+			cmd := strings.Split(cmd, " ")[0:1][0]
+
 			if _, err := os.Stat(v + "/" + cmd); err == nil {
 				exist = true
-				fmt.Println(v + "/" + cmd)
+				e := exec.Command(v+"/"+cmd, cmdArgs...)
+				stdout, err := e.Output()
+
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					fmt.Println(string(stdout))
+				}
+
+				break
 			}
 		}
 
